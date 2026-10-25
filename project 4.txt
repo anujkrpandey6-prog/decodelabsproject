@@ -1,0 +1,105 @@
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.NumberFormat;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Scanner;
+
+public class CurrencyConverter {
+
+    // Example rates: units of currency per 1 USD.
+    // These are predefined sample rates, not live exchange rates.
+    private static final Map<String, BigDecimal> RATES =
+            new LinkedHashMap<>();
+
+    static {
+        RATES.put("USD", new BigDecimal("1.00"));
+        RATES.put("INR", new BigDecimal("83.14"));
+        RATES.put("EUR", new BigDecimal("0.92"));
+        RATES.put("GBP", new BigDecimal("0.79"));
+        RATES.put("JPY", new BigDecimal("150.00"));
+        RATES.put("AUD", new BigDecimal("1.52"));
+        RATES.put("CAD", new BigDecimal("1.36"));
+        RATES.put("KWD", new BigDecimal("0.31"));
+    }
+
+    private static final Scanner sc = new Scanner(System.in);
+
+    public static void main(String[] args) {
+
+        System.out.println("================================");
+        System.out.println("       CURRENCY CONVERTER");
+        System.out.println("================================");
+
+        while (true) {
+            System.out.println("\nAvailable currencies:");
+            System.out.println(String.join(", ", RATES.keySet()));
+
+            System.out.print("\nEnter source currency (or EXIT): ");
+            String source = sc.nextLine().trim().toUpperCase();
+
+            if (source.equals("EXIT")) {
+                System.out.println("Thank you for using Currency Converter!");
+                break;
+            }
+
+            if (!RATES.containsKey(source)) {
+                System.out.println("Invalid source currency. Try again.");
+                continue;
+            }
+
+            System.out.print("Enter target currency: ");
+            String target = sc.nextLine().trim().toUpperCase();
+
+            if (!RATES.containsKey(target)) {
+                System.out.println("Invalid target currency. Try again.");
+                continue;
+            }
+
+            System.out.print("Enter amount: ");
+            String input = sc.nextLine().trim();
+
+            BigDecimal amount;
+
+            try {
+                amount = new BigDecimal(input);
+            } catch (NumberFormatException e) {
+                System.out.println("Error: Please enter a valid number.");
+                continue;
+            }
+
+            if (amount.compareTo(BigDecimal.ZERO) < 0) {
+                System.out.println("Error: Negative amounts are not allowed.");
+                continue;
+            }
+
+            // Convert source currency to USD, then to target currency.
+            BigDecimal usdAmount = amount.divide(
+                    RATES.get(source),
+                    12,
+                    RoundingMode.HALF_UP
+            );
+
+            BigDecimal converted = usdAmount
+                    .multiply(RATES.get(target))
+                    .setScale(2, RoundingMode.HALF_UP);
+
+            NumberFormat formatter =
+                    NumberFormat.getNumberInstance(Locale.US);
+            formatter.setMinimumFractionDigits(2);
+            formatter.setMaximumFractionDigits(2);
+
+            System.out.println("\n---------- RESULT ----------");
+            System.out.println("From Currency : " + source);
+            System.out.println("To Currency   : " + target);
+            System.out.println("Original Amount: "
+                    + formatter.format(amount) + " " + source);
+            System.out.println("Converted Amount: "
+                    + formatter.format(converted) + " " + target);
+            System.out.println("----------------------------");
+        }
+
+        sc.close();
+    }
+}
